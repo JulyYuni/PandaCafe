@@ -17,6 +17,7 @@ gamestate = 0
 clicked  = 0
 player_velocity = 500
 
+
 # Definindo os sprites
 
     # Definindo os botões comuns
@@ -93,6 +94,12 @@ buttons_difficulty_menu = [button_easy, button_medium, button_hard]
 buttons_hover_difficulty_menu = [button_easy_hover, button_medium_hover, button_hard_hover]
 
 
+# Bordas do player
+
+player_border_up = 405 - player.height
+player_border_down = screen_height_resolution - player.height
+player_border_left = 0
+player_border_right = screen_width_resolution - player.width
 
 
 '''''''''''FUNÇÕES'''''''''
@@ -148,24 +155,31 @@ def play():
     global gamestate
     gamestate = 1
     
-    #Define posições
+    # Define posições
     positions()
 
     while gamestate == 1:
 
-        #Cenário é criado
+        # Cenário é criado
         creating_scene()
         
-        #Recebe entradas do teclado
+        # Recebe entradas do teclado
         player_movement()
 
-        #Imprime fps
+        # Não deixa o payer ultrapassar a borda
+        keep_player_in_screen_bounds()
+
+        # Imprime fps
         print_fps()
 
-        #Atualiza janela
+        # Atualiza janela
         screen.update()
 
-        #Voltar para o menu
+
+        '''if player.y <= 410 - player.height:
+            print(player.y)'''
+
+        # Voltar para o menu
         if(keyboard_object.key_pressed("ESC")):
             break
         
@@ -263,33 +277,55 @@ def positions():
     button_medium_hover.set_position(buttons_x  , button_medium_y)
     button_hard_hover.set_position(buttons_x , buttons_exit_y)
 
+    # Posição inicial player
+    player.set_position(50, screen_height_resolution/2)
+
 
 #6 Função que recebe as entradas do teclado
 def player_movement():
 
     # Move nave para esquerda
     if(keyboard_object.key_pressed("LEFT") == True):
-        if player.x >= 0:
-            player.x += - player_velocity * screen.delta_time()
+        if player.x > 0:
+            player.x += - player_velocity * screen.delta_time()            
 
     # Move nave para direita
     if(keyboard_object.key_pressed("RIGHT") == True):
-        if player.x <= screen_width_resolution - player.width:
+        if player.x < player_border_right:
             player.x += player_velocity * screen.delta_time()
-
+    
     # Move player para cima
     if(keyboard_object.key_pressed("UP") == True):
-        if player.y >= 0:
-            player.y += - player_velocity * screen.delta_time()
-
+        if player.y > player_border_up:
+            player.y -= player_velocity * screen.delta_time()
+            
     # Move player para baixo
     if(keyboard_object.key_pressed("DOWN") == True):
-        if player.y <= screen_height_resolution - player.height:
+        if player.y < player_border_down:
             player.y += player_velocity * screen.delta_time()
+                
     
+#7 Contendo do player dentro da Janela sem ultrapassá-la
+def keep_player_in_screen_bounds():
+
+    # Se a posição y do player for menor ou igual que a parede de cima (0), reposicione-o no limite da borda
+    if player.y < player_border_up:
+        player.y = player_border_up
+  
+    # Se a posição y do player for maior que a parede de baixo, reposicione-o no limite da borda
+    if player.y > player_border_down:
+        player.y = player_border_down
+
+    # Se a posição x do player for menor ou igual que a parede da esquerda (0), reposicione-o no limite da borda
+    if player.x < player_border_left:
+        player.x = player_border_left
+    
+    # Se a posição x do player for maior que a parede da direita, reposicione-o no limite da borda
+    if player.x > player_border_right:
+        player.x = player_border_right
 
 
-#7 Click e hover nos botoes
+#8 Click e hover nos botoes
 def click_hover(buttons, buttons_hover):
     global clicked
     is_hover = []
@@ -320,7 +356,7 @@ def click_hover(buttons, buttons_hover):
 
     return clicked, click_left
 
-#Imprime fps na tela do jogo
+#9 Imprime fps na tela do jogo
 def print_fps():
     global fps
 
