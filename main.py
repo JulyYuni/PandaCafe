@@ -159,6 +159,10 @@ def play():
         #Recebe entradas do teclado
         player_movement()
 
+        #Imprime fps
+        print_fps()
+
+        #Atualiza janela
         screen.update()
 
         #Voltar para o menu
@@ -260,7 +264,6 @@ def positions():
     button_hard_hover.set_position(buttons_x , buttons_exit_y)
 
 
-
 #6 Função que recebe as entradas do teclado
 def player_movement():
 
@@ -317,7 +320,18 @@ def click_hover(buttons, buttons_hover):
 
     return clicked, click_left
 
+#Imprime fps na tela do jogo
+def print_fps():
+    global fps
 
+    # Obtém o FPS atual
+    fps = int(clock.get_fps())
+
+    #Imprime o fps na tela
+    screen.draw_text(f"FPS: {fps}", 100, 50, size=30, color=(151, 0, 71), font_name="Arial", bold=True, italic=True)
+
+    # Limita a taxa de quadros por segundo
+    clock.tick(60)  # Limite de 60 FPS
 
 
 ''' EXECUÇÃO '''
