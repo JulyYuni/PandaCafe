@@ -1,5 +1,6 @@
 
 '''''''''''IMPORTS'''''''''
+#PPlay
 
 from PPlay.window import *
 from PPlay.sprite import *
@@ -45,7 +46,16 @@ background = Sprite("assets/images/backgrounds/background.png", 1)
 background_menu = Sprite("assets/images/backgrounds/background-menu.jpg", 1)
 
     # Definindo personagens
-player = Sprite("assets/images/objects/player.png", 1)
+#player = Sprite("assets/images/objects/player.png", 1)
+player_holding = Sprite("assets/images/objects/player-holding.png", 1)
+player_walking_back = Sprite("assets/images/objects/player-walking-back.png", 8)
+player_walking_front = Sprite("assets/images/objects/player-walking-front.png", 5)
+player_walking_right = Sprite("assets/images/objects/player-walking-right.png", 9)
+player_walking_left = Sprite("assets/images/objects/player-walking-left.png", 8)
+player_back = Sprite("assets/images/objects/player-back.png", 1)
+player_front = Sprite("assets/images/objects/player-front.png", 1)
+player_right= Sprite("assets/images/objects/player-right.png", 1)
+player_left = Sprite("assets/images/objects/player-left.png", 1)
 
 
 # Inicializando objetos
@@ -96,12 +106,6 @@ buttons_hover_difficulty_menu = [button_easy_hover, button_medium_hover, button_
 
 # Bordas do player
 
-player_border_up = 405 - player.height
-player_border_down = screen_height_resolution - player.height
-player_border_left = 0
-player_border_right = screen_width_resolution - player.width
-
-
 '''''''''''FUNÇÕES'''''''''
 
 #1 Menu principal
@@ -112,8 +116,8 @@ def principal_menu():
     while gamestate == 0:
 
         # Gerando cenário
-        positions()
-        creating_scene()
+        positions_menu()
+        creating_scene_menu()
 
         # Retorna se o usuário clickou em algum botão e em qual botão ele clickou
         clicked, click_left = click_hover(buttons_principal_menu, buttons_hover_principal_menu)
@@ -154,30 +158,36 @@ def principal_menu():
 def play():
     global gamestate
     gamestate = 1
-    
+
+    #Inicializando o player
+    player = player_front
+
+    #Limite do movimento do player na tela
+    player_border_up = 430 - player.height
+    player_border_down = screen_height_resolution - player.height
+    player_border_left = 0
+    player_border_right = screen_width_resolution - player.width
+
     # Define posições
-    positions()
+    positions_play(player)
 
     while gamestate == 1:
 
         # Cenário é criado
-        creating_scene()
-        
+        creating_scene_play(player)
+
         # Recebe entradas do teclado
-        player_movement()
+        player = player_movement(player, player_border_up, player_border_down, player_border_left, player_border_right)
 
         # Não deixa o payer ultrapassar a borda
-        keep_player_in_screen_bounds()
+        keep_player_in_screen_bounds(player, player_border_up, player_border_down, player_border_left, player_border_right)
 
         # Imprime fps
         print_fps()
 
         # Atualiza janela
         screen.update()
-
-
-        '''if player.y <= 410 - player.height:
-            print(player.y)'''
+        player.update()
 
         # Voltar para o menu
         if(keyboard_object.key_pressed("ESC")):
@@ -191,8 +201,8 @@ def menu_difficulty():
     gamestate = 2
 
     # Gerando cenário
-    positions()
-    creating_scene()
+    positions_menu()
+    creating_scene_menu()
 
     while gamestate == 2:
 
@@ -222,9 +232,8 @@ def menu_difficulty():
             break
 
 
-
 #4 Função que gera o cenário
-def creating_scene():
+def creating_scene_menu():
 
     #Cor da Janela
     screen.set_background_color([255,174,183])
@@ -236,13 +245,7 @@ def creating_scene():
         button_difficulty.draw()
         button_ranking.draw()
         button_exit.draw()
-        #print("entrou 0")
-    #Play
-    if gamestate == 1:
-        background.draw()
-        player.draw()
-        #print("entrou 1")
-    
+
     #Menu dificuldades
     if gamestate == 2:
         background_menu.draw()
@@ -251,9 +254,21 @@ def creating_scene():
         button_hard.draw()
 
 
+def creating_scene_play(player):
+    #Play
+    if gamestate == 1:
+        background.draw()
+        player.draw()
+
+
+def player_draw(player):
+    
+    player.set_sequence_time(0, 10, 1000, loop=True)
+    #screen.blit(player, (0,0), (0, 0, 190, 250))
+
 
 #5 Definição das posições de início de partida
-def positions():
+def positions_menu():
 
     # Botões menu principal
     button_play.set_position(buttons_x , buttons_y_gap)
@@ -277,36 +292,82 @@ def positions():
     button_medium_hover.set_position(buttons_x  , button_medium_y)
     button_hard_hover.set_position(buttons_x , buttons_exit_y)
 
+
+def positions_play(player):
     # Posição inicial player
-    player.set_position(50, screen_height_resolution/2)
+    player.set_position(500, screen_height_resolution/2)
+
+
+
+'''def player_border(player):
+    player_border_up = 405 - player.height
+    player_border_down = screen_height_resolution - player.height
+    player_border_left = 0
+    player_border_right = screen_width_resolution - player.width
+
+    return player_border_up, player_border_down, player_border_left, player_border_right'''
 
 
 #6 Função que recebe as entradas do teclado
-def player_movement():
+def player_movement(player, player_border_up, player_border_down, player_border_left, player_border_right):
+
+    up = keyboard_object.key_pressed("UP")
+    down = keyboard_object.key_pressed("DOWN")
+    left = keyboard_object.key_pressed("LEFT")
+    right = keyboard_object.key_pressed("RIGHT")
 
     # Move nave para esquerda
     if(keyboard_object.key_pressed("LEFT") == True):
         if player.x > 0:
+            player_walking_left.set_position(player.x, player.y)
+            player = player_walking_left
             player.x += - player_velocity * screen.delta_time()            
 
     # Move nave para direita
     if(keyboard_object.key_pressed("RIGHT") == True):
         if player.x < player_border_right:
+            player_walking_right.set_position(player.x, player.y)
+            player = player_walking_right
             player.x += player_velocity * screen.delta_time()
     
     # Move player para cima
     if(keyboard_object.key_pressed("UP") == True):
         if player.y > player_border_up:
+            player_walking_back.set_position(player.x, player.y)
+            player = player_walking_back
             player.y -= player_velocity * screen.delta_time()
+            
             
     # Move player para baixo
     if(keyboard_object.key_pressed("DOWN") == True):
         if player.y < player_border_down:
+            player_walking_front.set_position(player.x, player.y)
+            player = player_walking_front
             player.y += player_velocity * screen.delta_time()
-                
     
+    if (up == False and down == False and right == False and left == False):
+        if player == player_walking_back:
+            player_back.set_position(player.x, player.y)
+            player = player_back
+
+        elif player == player_walking_front:
+            player_front.set_position(player.x, player.y)
+            player = player_front
+
+        elif player == player_walking_right:
+            player_right.set_position(player.x, player.y)
+            player = player_right
+
+        elif player == player_walking_left:
+            player_left.set_position(player.x, player.y)
+            player = player_left
+
+    player.set_total_duration(1000)    
+
+    return player
+
 #7 Contendo do player dentro da Janela sem ultrapassá-la
-def keep_player_in_screen_bounds():
+def keep_player_in_screen_bounds(player, player_border_up, player_border_down, player_border_left, player_border_right):
 
     # Se a posição y do player for menor ou igual que a parede de cima (0), reposicione-o no limite da borda
     if player.y < player_border_up:
@@ -342,7 +403,7 @@ def click_hover(buttons, buttons_hover):
         #Se o mouse estiver em cima do botão
         if hover == True:
             #Desenha e posiciona botão hover
-            positions()
+            positions_menu()
             buttons_hover[index].draw()        
 
             #Se clickou guarde essa informação
@@ -351,7 +412,7 @@ def click_hover(buttons, buttons_hover):
 
         #Se o mouse não estiver em cima, desenhe o botão normal
         elif hover == False:
-            positions()
+            positions_menu()
             buttons[index].draw()
 
     return clicked, click_left
